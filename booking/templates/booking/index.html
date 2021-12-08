@@ -1,0 +1,20 @@
+{% extends "booking/layout.html" %}
+{% load static %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+      
+
+    <a href=""></a>
+
+      {% for c in parking.all %} 
+      <a href="{% url 'open_parking_lot' c.id  %}">Parking {{ c.name }}</a>
+      {% endfor %} 
+    {% csrf_token %}
+    {% endif %} 
+
+  {% block script %}
+      <script src="{% static 'booking/index.js' %}?{% now "U" %}"></script>
+  {% endblock %}
+{% endblock %}
+

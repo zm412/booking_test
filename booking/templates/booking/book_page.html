@@ -1,0 +1,13 @@
+{% extends "booking/layout.html" %}
+{% load static %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+    <div id="calendar"></div>
+     
+    {% endif %} 
+  {% block script %}
+      <script src="{% static 'booking/index.js' %}?{% now "U" %}"></script>
+  {% endblock %}
+{% endblock %}
+

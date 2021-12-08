@@ -1,0 +1,25 @@
+
+body{
+  font: Candara;
+  font-weight: 600;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.green {
+  background: green;
+}
+
+td,
+th {
+  border: 1px solid black;
+  padding: 3px;
+  text-align: center;
+}
+
+th {
+  font-weight: bold;
+  background-color: #E6E6E6;
+}
