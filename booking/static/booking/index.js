@@ -8,27 +8,25 @@ document.addEventListener('DOMContentLoaded', function() {
   let hours = document.querySelector('#hours');
 
   if(calendar) createCalendar(calendar, 2021, 10);
+  
 
   for(let elem of document.querySelectorAll('.td_class')){
-    elem.onclick = (e) =>{
-      hours.innerHTML = '';
-      if(current_mode == 'booking'){
-        elem.classList.toggle('green');
-        time_object[e.target.dataset.book] = ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17'] ;
-      } 
-      for(let el of document.querySelectorAll('.td_class')){
-        if(elem == el){
-          el.classList.add('active_day');
-        }else{
-          el.classList.remove('active_day');
-        }
-      }
-      create_hours_tbl(hours, elem.dataset.book, elem);
-      let li = createEl('li', elem, {}, `reservation time: ${e.target.dataset.book}, 08.00 - 17.00`)
-      reservation.appendChild(li);
-    } 
-  }
+    elem.addEventListener('click', open_booking);
 
+      function open_booking(){
+        add_day(hours, document.querySelectorAll('.td_class'), elem, reservation);
+        this.removeEventListener('click', open_booking);
+        this.addEventListener('click', close_booking);
+      }
+
+      function close_booking(){
+        remove_day(hours, document.querySelectorAll('.td_class'), elem, reservation);
+        this.removeEventListener('click', close_booking);
+        this.addEventListener('click', open_booking);
+      }
+    console.log(time_object, 'time')
+
+  }
   let inp = document.querySelector('#mode');
   inp.onchange = (e) => {
     current_mode =  e.target.checked ? 'booking' : 'view';
@@ -38,12 +36,46 @@ document.addEventListener('DOMContentLoaded', function() {
  
 })
 
+
+
+function remove_day(hours, elems, current_elem, message_elem){
+  let arr = ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17' ]
+  current_elem.classList.remove('green');
+  hours.innerHTML = '';
+  for(let elem of arr){
+    if(time_object[current_elem.dataset.book]){
+      let index = time_object[current_elem.dataset.book].indexOf(elem);
+      time_object[current_elem.dataset.book].splice(index, 1);
+    }
+  }
+
+  let li = document.getElementById(current_elem.dataset.book)
+  if(li) message_elem.removeChild(li);
+}
+
+function add_day(hours, elems, current_elem, message_elem){
+  hours.innerHTML = '';
+  if(current_mode == 'booking'){
+    current_elem.classList.add('green');
+    time_object[current_elem.dataset.book] = ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17'] ;
+
+    let li = createEl('li', current_elem, {id: current_elem.dataset.book}, `reservation time: ${current_elem.dataset.book}, 08.00 - 17.00`)
+    message_elem.appendChild(li);
+  } 
+  console.log(time_object, '2')
+  for(let el of elems){
+    current_elem == el ?  el.classList.add('active_day') :  el.classList.remove('active_day')
+  }
+  create_hours_tbl(hours, current_elem.dataset.book, current_elem);
+}
+
+
+
 function create_hours_tbl(par, date, parent_day){
   let title = `<h1>${date}</h1>`
   let hours_tbl = title + '<table id="hours_t"><tr>'
   for(let i = 0; i < 24; i++){
     let classN = i >= 8 && i <= 17 && current_mode == 'booking' ? 'hours_class hours_green' : 'hours_class';
-    console.log(classN, 'classN')
     if(i < 10){
       hours_tbl +=`<td id='0${i}' class="${classN}">0${i}:00</td>`
     }else{
