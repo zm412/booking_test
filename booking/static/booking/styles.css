@@ -8,8 +8,24 @@ table {
   border-collapse: collapse;
 }
 
+.blue_day {
+  background: blue;
+}
+
 .green {
   background: green;
+}
+
+.active_day{
+  border: medium dashed grey;
+}
+
+.hours_green{
+  background: green;
+}
+
+.none_display{
+  display: none;
 }
 
 td,

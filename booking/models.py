@@ -24,6 +24,7 @@ class Booking_session(models.Model):
     user = models.ForeignKey(User, on_delete= models.CASCADE)
     parking_lot = models.ForeignKey(Parking, on_delete= models.CASCADE)
     list_of_periods = models.ManyToManyField(List_periods, blank=True, related_name="hours_list")
+    #reservation_day = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(blank=True, null=True)
     deleted_by = models.ForeignKey(User, on_delete = models.DO_NOTHING, blank=True, null=True, related_name="user_del")
