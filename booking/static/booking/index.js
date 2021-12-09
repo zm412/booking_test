@@ -30,16 +30,24 @@ document.addEventListener('DOMContentLoaded', function() {
   let inp = document.querySelector('#mode');
   inp.onchange = (e) => {
     current_mode =  e.target.checked ? 'booking' : 'view';
-  console.log(current_mode, 'mode')
   }
   
- 
 })
 
+function reservation_info(dayD){
+  let reservation = document.querySelector('#reservation');
+  let str = time_object[dayD].join(', ');
+  if(li=document.getElementById(dayD)){
+   li.innerHTML =  `reservation time: ${dayD} - ${str}`;
+  }else{
+    let li = createEl('li', reservation, {id: dayD}, `reservation time: ${dayD} - ${str}`)
+    reservation.appendChild(li);
+  }
+}
 
 
 function remove_day(hours, elems, current_elem, message_elem){
-  let arr = ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17' ]
+  let arr = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
   current_elem.classList.remove('green');
   hours.innerHTML = '';
   for(let elem of arr){
@@ -57,11 +65,10 @@ function add_day(hours, elems, current_elem, message_elem){
   hours.innerHTML = '';
   if(current_mode == 'booking'){
     current_elem.classList.add('green');
-    time_object[current_elem.dataset.book] = ['8', '9', '10', '11', '12', '13', '14', '15', '16', '17'] ;
-
-    let li = createEl('li', current_elem, {id: current_elem.dataset.book}, `reservation time: ${current_elem.dataset.book}, 08.00 - 17.00`)
-    message_elem.appendChild(li);
+    time_object[current_elem.dataset.book] = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17'] ;
+    reservation_info(current_elem.dataset.book);
   } 
+
   console.log(time_object, '2')
   for(let el of elems){
     current_elem == el ?  el.classList.add('active_day') :  el.classList.remove('active_day')
@@ -70,6 +77,27 @@ function add_day(hours, elems, current_elem, message_elem){
 }
 
 
+function add_hour(hour_elem, date, message_elem){
+  hour_elem.classList.add('hours_green');
+  time_object[date] ?  time_object[date].push(hour_elem.id) : time_object[date] = [hour_elem.id] ;
+  reservation_info(date);
+  console.log(time_object, '3')
+}
+
+function remove_hour(hour_elem, date, parent_day, message_elem){
+  hour_elem.classList.remove('hours_green');
+
+  let index = time_object[date].indexOf(hour_elem.id);
+  time_object[date].splice(index, 1);
+  
+  let arr = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
+  if(( hour_elem.id ) >= 8 && hour_elem.id <= 17){
+    parent_day.classList.remove('green');
+    parent_day.classList.add('blue_day');
+  }
+  reservation_info(date);
+  console.log(time_object, '3')
+}
 
 function create_hours_tbl(par, date, parent_day){
   let title = `<h1>${date}</h1>`
@@ -85,15 +113,27 @@ function create_hours_tbl(par, date, parent_day){
   hours_tbl += '</tr></table>'
   par.insertAdjacentHTML('afterbegin', hours_tbl)
 
+  let reservation = document.querySelector('#reservation');
   if(current_mode == 'booking'){
     for(let elem of document.querySelectorAll('.hours_class')){
-      elem.onclick = (e) =>{
-        elem.classList.toggle('hours_green');
-        if(elem.id >= 8 && elem.id <=17){
-          parent_day.classList.remove('green');
-          parent_day.classList.add('blue_day');
-        }
-      } 
+
+      if(!elem.classList.contains('hours_green')){
+        elem.addEventListener('click',  add_hours_action);
+      }else{
+        elem.addEventListener('click',  remove_hours_action);
+      }
+
+      function add_hours_action(){
+        add_hour(elem, date, );
+        this.removeEventListener('click', add_hours_action);
+        this.addEventListener('click', remove_hours_action);
+      }
+
+      function remove_hours_action(){
+        remove_hour(elem, date, parent_day);
+        this.removeEventListener('click', remove_hours_action);
+        this.addEventListener('click', add_hours_action);
+      }
     }
   }
 
