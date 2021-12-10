@@ -11,12 +11,13 @@ from .models import User, Parking, List_periods, Booking_session, Reservation_da
 from django import forms
 
 def index(request):
-    print(Parking.objects.all())
-    print(List_periods.objects.all())
-    print(Booking_session.objects.all(), "BOOKINGS1")
-
     if request.user.is_authenticated:
-        return render(request, "booking/index.html", {'parking': Parking.objects.all()})
+        my_book =  List_periods.objects.filter(session__user = request.user)
+        print(Parking.objects.all(), 'PARKING')
+        return render(request, "booking/index.html", {
+            'parking': Parking.objects.all(),
+            'my_bookings': [b.serialize() for b in my_book],
+        })
     else:
         return render(request, "booking/login.html")
 
@@ -32,14 +33,12 @@ def manage_items(request):
 def add_parking_lot(request):
     print(request.POST)
     if request.method == "POST":
-        parking = Parking(name=request.POST['name'])
+        parking = Parking(parking_name=request.POST['name'])
         parking.save()
     return HttpResponseRedirect(reverse("index"))
 
 def open_parking_lot(request, id_lot):
     return render(request, "booking/book_page.html", {'parking_lot': id_lot})
-
-
 
 def book_parking(request):
     print(request.body, 'pOST')
@@ -52,14 +51,12 @@ def book_parking(request):
 
         for c in data['dates_set']:
             print(c, 'c')
-            day_x = Reservation_day.objects.get_or_create(name=c, parking_lot=parking_lot)
+            day_x = Reservation_day.objects.get_or_create(day_name=c)
             for t in data[c]:
-                print(t, "TTTTTTTTTt")
-                print(day_x, "dxxxxxxxxxxxxx")
-                period = List_periods.objects.get_or_create(name=t, day=day_x[0])
-                print(period, 'PERIOD')
-        booking.reservation_day.add(day_x[0])
-        print(Booking_session.objects.all(), "BOOKINGS")
+                period = List_periods.objects.create(hour_name=t, parking_lot=parking_lot,
+                                                     day=day_x[0],
+                                                     session=booking
+                                                     )
     return render(request, "booking/index.html", {'parking': Parking.objects.all()})
 
 def login_view(request):

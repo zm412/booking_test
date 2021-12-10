@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let my_booking = document.querySelector('#my_booking');
   let hours = document.querySelector('#hours');
   let form_r = document.querySelector('#form_r');
-  form_r.addEventListener('submit', send_info)
+  if(form_r) form_r.addEventListener('submit', send_info)
 
   fetchDataGet();
   if(calendar){
@@ -36,11 +36,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
   }
   let inp = document.querySelector('#mode');
-  inp.onchange = (e) => {
-    current_mode =  e.target.checked ? 'booking' : 'view';
+  if(inp){
+    inp.onchange = (e) => {
+      current_mode =  e.target.checked ? 'booking' : 'view';
+    }
   }
-  
 })
+
 
 function send_info(e){
   e.preventDefault();

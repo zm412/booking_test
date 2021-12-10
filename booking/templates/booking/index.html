@@ -8,8 +8,8 @@
 
     <a href=""></a>
 
-      {% for c in parking.all %} 
-      <a href="{% url 'open_parking_lot' c.id  %}">Parking {{ c.name }}</a>
+      {% for c in parking %} 
+      <a href="{% url 'open_parking_lot' c.id  %}">Parking {{ c.parking_name }}</a>
       {% endfor %} 
     {% csrf_token %}
     {% endif %} 
