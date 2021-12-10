@@ -8,10 +8,12 @@ let time_object = {
 document.addEventListener('DOMContentLoaded', function() {
   let calendar = document.querySelector('#calendar');
   let reservation = document.querySelector('#reservation');
+  let my_booking = document.querySelector('#my_booking');
   let hours = document.querySelector('#hours');
   let form_r = document.querySelector('#form_r');
   form_r.addEventListener('submit', send_info)
 
+  fetchDataGet();
   if(calendar){
     createCalendar(calendar, 2021, 10);
     time_object['parking_lot'] = calendar.dataset.lot;
@@ -50,6 +52,16 @@ function send_info(e){
     })
  
 }
+
+async function fetchDataGet() {
+    try {
+      const response = await fetch('/get_all_hours/');
+      const json = await response.json();
+      console.log(json, 'sjon')
+    } catch (e) {
+        console.error(e);
+    }
+};
 
 async function fetchDataPost(url, obj){  
   const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -201,7 +213,7 @@ function formatDate(date) {
   if (dd < 10) dd = '0' + dd;
   var mm = date.getMonth() + 1;
   if (mm < 10) mm = '0' + mm;
-  var yy = date.getFullYear() % 100;
+  var yy = date.getFullYear();
   if (yy < 10) yy = '0' + yy;
   return dd + '.' + mm + '.' + yy;
 }

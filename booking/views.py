@@ -14,12 +14,16 @@ def index(request):
     print(Parking.objects.all())
     print(List_periods.objects.all())
     print(Booking_session.objects.all(), "BOOKINGS1")
-    start_data()
 
     if request.user.is_authenticated:
         return render(request, "booking/index.html", {'parking': Parking.objects.all()})
     else:
         return render(request, "booking/login.html")
+
+def get_all_hours(request):
+    return JsonResponse({
+            'bookings': [b.serialize() for b in List_periods.objects.filter(day__is_active=True)],
+        })
 
 def manage_items(request):
     print(List_periods.objects.all())
@@ -50,9 +54,10 @@ def book_parking(request):
             print(c, 'c')
             day_x = Reservation_day.objects.get_or_create(name=c, parking_lot=parking_lot)
             for t in data[c]:
-                period = List_periods.objects.get_or_create(name=t)
+                print(t, "TTTTTTTTTt")
+                print(day_x, "dxxxxxxxxxxxxx")
+                period = List_periods.objects.get_or_create(name=t, day=day_x[0])
                 print(period, 'PERIOD')
-                period[0].hours_list.add(day_x[0])
         booking.reservation_day.add(day_x[0])
         print(Booking_session.objects.all(), "BOOKINGS")
     return render(request, "booking/index.html", {'parking': Parking.objects.all()})
