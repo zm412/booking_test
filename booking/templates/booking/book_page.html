@@ -1,11 +1,20 @@
 {% extends "booking/layout.html" %}
+
 {% load static %}
 
 {% block body %}
     {% if user.is_authenticated %}
-    <div id="calendar"></div>
+
+    <div id="calendar"  data-lot={{parking_lot}}></div>
     <div id="hours"></div>
     <ul id="reservation"></ul>
+    <div id="form_reservation">
+      {{ parking }}
+      <form id='form_r' action="" method='post'>
+        {% csrf_token %}
+        <input type="submit" value='Make a reservation'>
+      </form>
+    </div>
      
     {% endif %} 
   {% block script %}

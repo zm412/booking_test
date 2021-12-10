@@ -51,21 +51,21 @@ def add_parking_lot(request):
     return HttpResponseRedirect(reverse("index"))
 
 def open_parking_lot(request, id_lot):
-    return render(request, "booking/book_page.html")
+    return render(request, "booking/book_page.html", {'parking_lot': id_lot})
 
 
 
-def book_parking(request, id_lot):
+def book_parking(request):
     print(request.POST)
-    #if request.method == "POST":
-    parking_lot = Parking.objects.get(id=id_lot)
-    booking = Booking_session.objects.create(user=request.user, parking_lot=parking_lot)
+    if request.method == "POST":
+        parking_lot = Parking.objects.get(id=request.POST['parking_lot'])
+        booking = Booking_session.objects.create(user=request.user, parking_lot=parking_lot)
 
-    for c in ['08', '09', '10', '11']:
-        period = List_periods.objects.get(name=c)
-        period.hours_list.add(booking)
+        for c in ['08', '09', '10', '11']:
+            period = List_periods.objects.get(name=c)
+            period.hours_list.add(booking)
 
-    print(Booking_session.objects.all, "BOOKINGS")
+        print(Booking_session.objects.all, "BOOKINGS")
 
 def login_view(request):
     if request.method == "POST":

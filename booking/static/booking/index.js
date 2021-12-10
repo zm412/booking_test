@@ -1,13 +1,21 @@
 
 let current_mode = 'view';
-let time_object = {};
+let time_object = {
+  parking_lot: null,
+  dates_set:[]
+};
 
 document.addEventListener('DOMContentLoaded', function() {
   let calendar = document.querySelector('#calendar');
   let reservation = document.querySelector('#reservation');
   let hours = document.querySelector('#hours');
+  let form_r = document.querySelector('#form_r');
+  form_r.onsumbit = send_info;
 
-  if(calendar) createCalendar(calendar, 2021, 10);
+  if(calendar){
+    createCalendar(calendar, 2021, 10);
+    time_object.parking_lot = calendar.dataset.lot;
+  } 
   
 
   for(let elem of document.querySelectorAll('.td_class')){
@@ -34,13 +42,43 @@ document.addEventListener('DOMContentLoaded', function() {
   
 })
 
+function send_info(e){
+  e.preventDefault();
+  console.log(e.target.dataset.lot, 'E')
+  console.log(e.target, 'target')
+  fetchDataPost('book_parking/', time_object)
+    .then(result => { 
+      console.log(result)
+    })
+ 
+}
+
+async function fetchDataPost(url, obj){  
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  try{
+    let response = await fetch(url, {
+      method: 'POST',
+      headers: { 
+        'X-CSRFToken': csrftoken,
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(obj) 
+    });
+    return await response.json();
+  } catch(e){
+    console.error(e);
+  }
+}
+
+
 function reservation_info(dayD){
   let reservation = document.querySelector('#reservation');
-  let str = time_object[dayD].join(', ');
+  let arr = time_object[dayD];
+  let str = arr && arr.length > 0 ? `reservation time: ${dayD} - ${ arr.join(', ') }` : '';
   if(li=document.getElementById(dayD)){
-   li.innerHTML =  `reservation time: ${dayD} - ${str}`;
+   li.innerHTML =  str;
   }else{
-    let li = createEl('li', reservation, {id: dayD}, `reservation time: ${dayD} - ${str}`)
+    let li = createEl('li', reservation, {id: dayD}, str)
     reservation.appendChild(li);
   }
 }
@@ -50,15 +88,23 @@ function remove_day(hours, elems, current_elem, message_elem){
   let arr = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
   current_elem.classList.remove('green');
   hours.innerHTML = '';
+  let arr_collection = time_object[current_elem.dataset.book]
   for(let elem of arr){
-    if(time_object[current_elem.dataset.book]){
-      let index = time_object[current_elem.dataset.book].indexOf(elem);
-      time_object[current_elem.dataset.book].splice(index, 1);
+    if(arr_collection.indexOf(elem) != -1){
+      let index = arr_collection.indexOf(elem);
+      arr_collection.splice(index, 1);
+    }
+    if(arr_collection.length == 0){
+      let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
+      time_object['dates_set'].splice(index, 1);
     }
   }
 
-  let li = document.getElementById(current_elem.dataset.book)
-  if(li) message_elem.removeChild(li);
+  if(arr_collection){
+    let li = document.getElementById(current_elem.dataset.book)
+    if(li) message_elem.removeChild(li);
+  }
+  console.log(time_object, '2')
 }
 
 function add_day(hours, elems, current_elem, message_elem){
@@ -66,6 +112,8 @@ function add_day(hours, elems, current_elem, message_elem){
   if(current_mode == 'booking'){
     current_elem.classList.add('green');
     time_object[current_elem.dataset.book] = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17'] ;
+    let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
+    if(index == -1) time_object['dates_set'].push(current_elem.dataset.book);
     reservation_info(current_elem.dataset.book);
   } 
 
@@ -95,6 +143,14 @@ function remove_hour(hour_elem, date, parent_day, message_elem){
     parent_day.classList.remove('green');
     parent_day.classList.add('blue_day');
   }
+
+  if(time_object[date].length == 0){
+    parent_day.classList.remove('blue_day');
+    delete time_object[date]
+    let index = time_object['dates_set'].indexOf(date);
+    time_object['dates_set'].splice(index, 1);
+  }
+
   reservation_info(date);
   console.log(time_object, '3')
 }
