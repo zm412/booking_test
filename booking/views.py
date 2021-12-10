@@ -7,26 +7,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .models import User, Parking, List_periods, Booking_session
+from .models import User, Parking, List_periods, Booking_session, Reservation_day
 from django import forms
-
-def get_periods_t(times):
-    listT = []
-    for t in list(range(times)):
-        if(t < 10):
-            listT.append('0%s' % t)
-        else:
-            listT.append('%s' % t)
-    return listT
-
-def start_data():
-    if(List_periods.objects.all().count() == 0) :
-        for l in get_periods_t(24):
-            hour = List_periods(name = str(l))
-            hour.save()
-
-
-
 
 def index(request):
     print(Parking.objects.all())
@@ -56,16 +38,24 @@ def open_parking_lot(request, id_lot):
 
 
 def book_parking(request):
-    print(request.POST)
+    print(request.body, 'pOST')
     if request.method == "POST":
-        parking_lot = Parking.objects.get(id=request.POST['parking_lot'])
-        booking = Booking_session.objects.create(user=request.user, parking_lot=parking_lot)
+        data = json.loads(request.body)
+        print(data, 'Data')
 
-        for c in ['08', '09', '10', '11']:
-            period = List_periods.objects.get(name=c)
-            period.hours_list.add(booking)
+        parking_lot = Parking.objects.get(id=data['parking_lot'])
+        booking = Booking_session.objects.create(user=request.user)
 
-        print(Booking_session.objects.all, "BOOKINGS")
+        for c in data['dates_set']:
+            print(c, 'c')
+            day_x = Reservation_day.objects.get_or_create(name=c, parking_lot=parking_lot)
+            for t in data[c]:
+                period = List_periods.objects.get_or_create(name=t)
+                print(period, 'PERIOD')
+                period[0].hours_list.add(day_x[0])
+        booking.reservation_day.add(day_x[0])
+        print(Booking_session.objects.all(), "BOOKINGS")
+    return render(request, "booking/index.html", {'parking': Parking.objects.all()})
 
 def login_view(request):
     if request.method == "POST":

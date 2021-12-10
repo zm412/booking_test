@@ -1,7 +1,7 @@
 
 let current_mode = 'view';
 let time_object = {
-  parking_lot: null,
+  parking_lot: [null],
   dates_set:[]
 };
 
@@ -10,11 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
   let reservation = document.querySelector('#reservation');
   let hours = document.querySelector('#hours');
   let form_r = document.querySelector('#form_r');
-  form_r.onsumbit = send_info;
+  form_r.addEventListener('submit', send_info)
 
   if(calendar){
     createCalendar(calendar, 2021, 10);
-    time_object.parking_lot = calendar.dataset.lot;
+    time_object['parking_lot'] = calendar.dataset.lot;
   } 
   
 
@@ -32,8 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.removeEventListener('click', close_booking);
         this.addEventListener('click', open_booking);
       }
-    console.log(time_object, 'time')
-
   }
   let inp = document.querySelector('#mode');
   inp.onchange = (e) => {
@@ -44,9 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function send_info(e){
   e.preventDefault();
-  console.log(e.target.dataset.lot, 'E')
   console.log(e.target, 'target')
-  fetchDataPost('book_parking/', time_object)
+  console.log(time_object, 'res')
+  fetchDataPost('/book_parking/', time_object)
     .then(result => { 
       console.log(result)
     })
