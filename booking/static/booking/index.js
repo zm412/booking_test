@@ -5,20 +5,30 @@ let time_object = {
   dates_set:[]
 };
 
+let booking_info;
+let data = new Date();
+let cur_year = data.getFullYear();
+let cur_month = data.getMonth();
+
 document.addEventListener('DOMContentLoaded', function() {
   let calendar = document.querySelector('#calendar');
   let reservation = document.querySelector('#reservation');
   let my_booking = document.querySelector('#my_booking');
   let hours = document.querySelector('#hours');
   let form_r = document.querySelector('#form_r');
+
+  document.getElementById('prev').onclick = prev_func;
+  document.getElementById('next').onclick = next_func;
+
+
   if(form_r) form_r.addEventListener('submit', send_info)
 
   fetchDataGet();
+
   if(calendar){
-    createCalendar(calendar, 2021, 10);
+    createCalendar(calendar, cur_year, cur_month);
     time_object['parking_lot'] = calendar.dataset.lot;
   } 
-  
 
   for(let elem of document.querySelectorAll('.td_class')){
     elem.addEventListener('click', open_booking);
@@ -44,13 +54,31 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 
 
+function prev_func(){
+  if(cur_month > 0 ){
+    cur_month--;
+  } else{
+    cur_year--;
+    cur_month = 11 ;
+  }
+  createCalendar(document.querySelector('#calendar'), cur_year, cur_month);
+};
+
+function next_func(){
+  if(cur_month < 11){
+    cur_month++;
+  } else{
+    cur_year++;
+    cur_month = 0 ;
+  }
+  createCalendar(document.querySelector('#calendar'), cur_year, cur_month);
+};
+
+
 function send_info(e){
   e.preventDefault();
-  console.log(e.target, 'target')
-  console.log(time_object, 'res')
   fetchDataPost('/book_parking/', time_object)
     .then(result => { 
-      console.log(result)
     })
  
 }
@@ -59,6 +87,7 @@ async function fetchDataGet() {
     try {
       const response = await fetch('/get_all_hours/');
       const json = await response.json();
+      booking_info = json;
       console.log(json, 'sjon')
     } catch (e) {
         console.error(e);
@@ -168,8 +197,9 @@ function remove_hour(hour_elem, date, parent_day, message_elem){
 }
 
 function create_hours_tbl(par, date, parent_day){
-  let title = `<h1>${date}</h1>`
-  let hours_tbl = title + '<table id="hours_t"><tr>'
+  let title = `<h1>${date}</h1>`;
+  let prev = `<button id='button_prev'>Prev</button>`; 
+  let hours_tbl = title + prev + '<table id="hours_t"><tr>';
   for(let i = 0; i < 24; i++){
     let classN = i >= 8 && i <= 17 && current_mode == 'booking' ? 'hours_class hours_green' : 'hours_class';
     if(i < 10){
@@ -178,7 +208,8 @@ function create_hours_tbl(par, date, parent_day){
       hours_tbl +=`<td id='${i}' class="${classN}">${i}:00</td>`
     }
   }
-  hours_tbl += '</tr></table>'
+  let next = `<button id='button_next'>Next</button>`; 
+  hours_tbl += '</tr></table>' + next;
   par.insertAdjacentHTML('afterbegin', hours_tbl)
 
   let reservation = document.querySelector('#reservation');
@@ -221,20 +252,18 @@ function formatDate(date) {
 }
 
 function createCalendar(elem, year, month){
-  let mon = month - 1; 
-  let d = new Date(year, mon);
-  let title = `<h1>${month}.${year}</h1>`
+  elem.innerHTML = '';
+  let show_month = month+1 < 10 ? '0'+( month+1 ) : month+1;
+  let d = new Date(year, month);
+  let title = `<h1>${show_month}.${year}</h1>`
   let mode = `<label>Включить режим бронирования</label><input type='checkbox' id='mode' value='on'>`
-  let table = title + mode +'<table><tr><th>пн</th><th>вт</th><th>ср</th><th>чт</th><th>пт</th><th>сб</th><th>вс</th></tr><tr>';
-  for(let i = 0; i < getDay(d); i++){
-    table += '<td></td>';
-  }
 
-  while(d.getMonth() == mon){
+  let table = title + mode +'<table><tr><th>пн</th><th>вт</th><th>ср</th><th>чт</th><th>пт</th><th>сб</th><th>вс</th></tr><tr>';
+  for(let i = 0; i < getDay(d); i++)  table += '<td></td>';
+
+  while(d.getMonth() == month){
     table += `<td data-book=${formatDate(d)} class="td_class">` + d.getDate() + '</td>';
-    if (getDay(d) % 7 == 6){ 
-      table += '</tr><tr>';
-    }
+    if (getDay(d) % 7 == 6){ table += '</tr><tr>'; }
     d.setDate(d.getDate() + 1);
   }
 

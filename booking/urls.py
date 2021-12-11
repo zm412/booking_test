@@ -13,6 +13,7 @@ urlpatterns = [
     path("open_parking_lot/<int:id_lot>", views.open_parking_lot, name="open_parking_lot"),
     path("open_parking_lot/book_parking", views.book_parking, name="book_parking"),
     path("book_parking/", views.book_parking, name="book_parking"),
+    path('delete_day_reservation/<str:day_name>', views.delete_day_reservation, name="delete_day_reservation"),
     path("get_all_hours/", views.get_all_hours, name="get_all_hours"),
 
 ]
