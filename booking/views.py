@@ -20,7 +20,8 @@ def index(request):
 
 def get_all_hours(request):
     all_hours = [b.serialize() for b  in Reservation_day.objects.all() if b.turn_to_date()==True]
-    print(all_hours, 'allH')
+    all_hours1 = [b.serialize() for b  in List_periods.objects.all() if b.clean_date()==True]
+    print(all_hours1, 'allH')
     return JsonResponse({
         'bookings': all_hours,
         })

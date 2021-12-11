@@ -12,21 +12,40 @@ let cur_month = data.getMonth();
 
 document.addEventListener('DOMContentLoaded', function() {
   let calendar = document.querySelector('#calendar');
-  let reservation = document.querySelector('#reservation');
   let my_booking = document.querySelector('#my_booking');
-  let hours = document.querySelector('#hours');
   let form_r = document.querySelector('#form_r');
+  let inp = document.querySelector('#mode');
+
+  time_object['parking_lot'] = calendar.dataset.lot;
+  time_object['user_id'] = calendar.dataset.user;
+  console.log(calendar, 'calendar')
   document.getElementById('prev').onclick = prev_func;
   document.getElementById('next').onclick = next_func;
 
   if(form_r) form_r.addEventListener('submit', send_info);
   fetchDataGet(calendar);
 
+  if(inp){
+    inp.onchange = (e) => {
+      current_mode =  e.target.checked ? 'booking' : 'view';
+      console.log(current_mode, 'curMode')
+      createCalendar(calendar, cur_year, cur_month);
+    }
+  }
+
+})
+
+function onClickDays(){
+
+  let reservation = document.querySelector('#reservation');
+  let hours = document.querySelector('#hours');
+ 
   for(let elem of document.querySelectorAll('.td_class')){
     elem.addEventListener('click', open_booking);
 
       function open_booking(){
         add_day(hours, document.querySelectorAll('.td_class'), elem, reservation); this.removeEventListener('click', open_booking);
+        this.addEventListener('click', close_booking);
         this.addEventListener('click', close_booking);
       }
 
@@ -36,15 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.addEventListener('click', open_booking);
       }
   }
-
-  let inp = document.querySelector('#mode');
-  if(inp){
-    inp.onchange = (e) => {
-      current_mode =  e.target.checked ? 'booking' : 'view';
-    }
-  }
-})
-
+}
 
 function prev_func(){
   if(cur_month > 0 ){
@@ -81,7 +92,6 @@ async function fetchDataGet(calendar) {
       const json = await response.json();
       booking_info = json.bookings;
       createCalendar(calendar, cur_year, cur_month);
-      time_object['parking_lot'] = calendar.dataset.lot;
 
     } catch (e) {
         console.error(e);
@@ -99,7 +109,6 @@ async function fetchDataPost(url, obj){
       },
       body: JSON.stringify(obj) 
     });
-    return await response.json();
   } catch(e){
     console.error(e);
   }
@@ -192,12 +201,12 @@ function create_hours_tbl(par, date, parent_day){
   let title = `<h1>${date}</h1>`;
   let hours_tbl = title  + '<table id="hours_t"><tr>';
   for(let i = 0; i < 24; i++){
+    let hour_i = i < 10 ? '0'+i : i;
+    let busyClass = classTdHour(parent_day.dataset.book, hour_i) 
     let classN = i >= 8 && i <= 17 && current_mode == 'booking' ? 'hours_class hours_green' : 'hours_class';
-    if(i < 10){
-      hours_tbl +=`<td id='0${i}' class="${classN}">0${i}:00</td>`
-    }else{
-      hours_tbl +=`<td id='${i}' class="${classN}">${i}:00</td>`
-    }
+    let show_busy = busyClass ?  busyClass : classN;
+    console.log(show_busy, 'showBusy')
+      hours_tbl +=`<td id='${hour_i}' class="${show_busy}">${hour_i}:00</td>`
   }
   hours_tbl += '</tr></table>';
   par.insertAdjacentHTML('afterbegin', hours_tbl)
@@ -228,7 +237,18 @@ function create_hours_tbl(par, date, parent_day){
 
 }
 
+function classTdHour(parent_day, number_h){
+  console.log(number_h, 'number_h')
+  let arr1 = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
 
+  let users_hours = booking_info.find(n => n.day_name == parent_day);
+  
+  let newClass = users_hours && users_hours.hours.find(n => n.hour == number_h) ? 'busy_hour' : '';
+  return newClass
+  
+  console.log(users_hours, 'usHours')
+  console.log(newClass, 'newClass')
+}
 
 
 function formatDate(date) {
@@ -246,9 +266,8 @@ function createCalendar(elem, year, month){
   let show_month = month+1 < 10 ? '0'+( month+1 ) : month+1;
   let d = new Date(year, month);
   let title = `<h1>${show_month}.${year}</h1>`
-  let mode = `<label>Включить режим бронирования</label><input type='checkbox' id='mode' value='on'>`
 
-  let table = title + mode +'<table><tr><th>пн</th><th>вт</th><th>ср</th><th>чт</th><th>пт</th><th>сб</th><th>вс</th></tr><tr>';
+  let table = title  +'<table><tr><th>пн</th><th>вт</th><th>ср</th><th>чт</th><th>пт</th><th>сб</th><th>вс</th></tr><tr>';
   for(let i = 0; i < getDay(d); i++)  table += '<td></td>';
 
   while(d.getMonth() == month){
@@ -265,8 +284,11 @@ function createCalendar(elem, year, month){
 
   table += '</tr></table>';
   elem.innerHTML = table;
+  onClickDays()
   console.log(booking_info, 'info')
 }
+
+
 
 function getDay(date) {
   let day = date.getDay();

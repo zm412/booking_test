@@ -61,10 +61,8 @@ class List_periods(models.Model):
     session = models.ForeignKey(Booking_session, on_delete= models.CASCADE,blank=True, related_name="booking_connection")
     parking_lot = models.ForeignKey(Parking, on_delete= models.CASCADE)
 
-    def make_selection_by_day(self, user):
-        querySet = Reservation_day.objects.all()
-        selection = List_periods.objects.filter(day=self.day, session__user=user)
-        print(selection, 'selection')
+    def clean_date(self):
+        return self.day.turn_to_date()
 
     def __str__(self):
         return 'hour: {}, day: {}'.format(self.hour_name, self.day.day_name)

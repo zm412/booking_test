@@ -5,9 +5,10 @@
 {% block body %}
     {% if user.is_authenticated %}
 
-    <div id="calendar"  data-lot={{parking_lot}}></div>
+    <div id="calendar"  data-lot={{parking_lot}} data-user={{user.id}}></div>
       <button id='prev'>Back</button>
       <button id='next'>Next</button>
+      <label>Включить режим бронирования</label><input type='checkbox' id='mode' value='on'>
     <div id="hours"></div>
     <ul id="reservation"></ul>
     <div id="form_reservation">

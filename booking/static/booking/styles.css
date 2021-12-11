@@ -12,6 +12,10 @@ table {
   background: blue;
 }
 
+.busy_hour{
+  background: grey;
+}
+
 .green {
   background: green;
 }
