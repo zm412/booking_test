@@ -12,7 +12,6 @@ from django import forms
 
 def index(request):
     if request.user.is_authenticated:
-        print(Parking.objects.all(), 'PARKING')
         return render(request, "booking/index.html", {
             'parking': Parking.objects.all(),
         })
@@ -20,12 +19,13 @@ def index(request):
         return render(request, "booking/login.html")
 
 def get_all_hours(request):
+    all_hours = [b.serialize() for b  in Reservation_day.objects.all() if b.turn_to_date()==True]
+    print(all_hours, 'allH')
     return JsonResponse({
-        'bookings': [b.serialize() for b in List_periods.objects.filter(day__is_active=True)],
+        'bookings': all_hours,
         })
 
 def manage_items(request):
-    print(List_periods.objects.all())
     return render(request, "booking/add_parking.html")
 
 def delete_day_reservation(request, day_name):
@@ -42,7 +42,6 @@ def delete_day_reservation(request, day_name):
 """
 
 def add_parking_lot(request):
-    print(request.POST)
     if request.method == "POST":
         parking = Parking(parking_name=request.POST['name'])
         parking.save()
@@ -59,24 +58,19 @@ def change_queryset(queryset):
 def open_parking_lot(request, id_lot):
     my_book =  List_periods.objects.filter(session__user_id = request.user.id)
     my_booking = Reservation_day.objects.filter(users_list=request.user).distinct()
-    print(my_book.order_by('day'), 'mybook')
-    print([c.serialize() for c in my_booking ], 'mybooking')
     return render(request, "booking/book_page.html", {
             'parking_lot': id_lot,
             'my_bookings': [b.serialize() for b in my_booking],
                                                       })
 
 def book_parking(request):
-    print(request.body, 'pOST')
     if request.method == "POST":
         data = json.loads(request.body)
-        print(data, 'Data')
 
         parking_lot = Parking.objects.get(id=data['parking_lot'])
         booking = Booking_session.objects.create(user=request.user)
 
         for c in data['dates_set']:
-            print(c, 'c')
             day_x = Reservation_day.objects.get_or_create(day_name=c)
             request.user.users_days.add(day_x[0])
             day_x[0].book_days.add(booking)

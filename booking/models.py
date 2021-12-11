@@ -35,8 +35,14 @@ class Reservation_day(models.Model):
     def serialize(self):
         return {
             'day_name': self.day_name,
-            'hours': [d for d in self.day_connection.all()]
+            'hours': [d.serialize() for d in self.day_connection.all()]
         }
+
+    def turn_to_date(self):
+        d = str(self.day_name).split('.')
+        date_result = datetime.date(int(d[2]), int(d[1]), int(d[0]))
+        return date_result > datetime.date.today()
+
 
 
 class Booking_session(models.Model):

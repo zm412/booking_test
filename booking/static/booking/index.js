@@ -16,26 +16,17 @@ document.addEventListener('DOMContentLoaded', function() {
   let my_booking = document.querySelector('#my_booking');
   let hours = document.querySelector('#hours');
   let form_r = document.querySelector('#form_r');
-
   document.getElementById('prev').onclick = prev_func;
   document.getElementById('next').onclick = next_func;
 
-
-  if(form_r) form_r.addEventListener('submit', send_info)
-
-  fetchDataGet();
-
-  if(calendar){
-    createCalendar(calendar, cur_year, cur_month);
-    time_object['parking_lot'] = calendar.dataset.lot;
-  } 
+  if(form_r) form_r.addEventListener('submit', send_info);
+  fetchDataGet(calendar);
 
   for(let elem of document.querySelectorAll('.td_class')){
     elem.addEventListener('click', open_booking);
 
       function open_booking(){
-        add_day(hours, document.querySelectorAll('.td_class'), elem, reservation);
-        this.removeEventListener('click', open_booking);
+        add_day(hours, document.querySelectorAll('.td_class'), elem, reservation); this.removeEventListener('click', open_booking);
         this.addEventListener('click', close_booking);
       }
 
@@ -45,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.addEventListener('click', open_booking);
       }
   }
+
   let inp = document.querySelector('#mode');
   if(inp){
     inp.onchange = (e) => {
@@ -83,12 +75,14 @@ function send_info(e){
  
 }
 
-async function fetchDataGet() {
+async function fetchDataGet(calendar) {
     try {
       const response = await fetch('/get_all_hours/');
       const json = await response.json();
-      booking_info = json;
-      console.log(json, 'sjon')
+      booking_info = json.bookings;
+      createCalendar(calendar, cur_year, cur_month);
+      time_object['parking_lot'] = calendar.dataset.lot;
+
     } catch (e) {
         console.error(e);
     }
@@ -158,7 +152,6 @@ function add_day(hours, elems, current_elem, message_elem){
     reservation_info(current_elem.dataset.book);
   } 
 
-  console.log(time_object, '2')
   for(let el of elems){
     current_elem == el ?  el.classList.add('active_day') :  el.classList.remove('active_day')
   }
@@ -193,13 +186,11 @@ function remove_hour(hour_elem, date, parent_day, message_elem){
   }
 
   reservation_info(date);
-  console.log(time_object, '3')
 }
 
 function create_hours_tbl(par, date, parent_day){
   let title = `<h1>${date}</h1>`;
-  let prev = `<button id='button_prev'>Prev</button>`; 
-  let hours_tbl = title + prev + '<table id="hours_t"><tr>';
+  let hours_tbl = title  + '<table id="hours_t"><tr>';
   for(let i = 0; i < 24; i++){
     let classN = i >= 8 && i <= 17 && current_mode == 'booking' ? 'hours_class hours_green' : 'hours_class';
     if(i < 10){
@@ -208,8 +199,7 @@ function create_hours_tbl(par, date, parent_day){
       hours_tbl +=`<td id='${i}' class="${classN}">${i}:00</td>`
     }
   }
-  let next = `<button id='button_next'>Next</button>`; 
-  hours_tbl += '</tr></table>' + next;
+  hours_tbl += '</tr></table>';
   par.insertAdjacentHTML('afterbegin', hours_tbl)
 
   let reservation = document.querySelector('#reservation');
@@ -275,6 +265,7 @@ function createCalendar(elem, year, month){
 
   table += '</tr></table>';
   elem.innerHTML = table;
+  console.log(booking_info, 'info')
 }
 
 function getDay(date) {
