@@ -9,6 +9,7 @@ let booking_info;
 let data = new Date();
 let cur_year = data.getFullYear();
 let cur_month = data.getMonth();
+let arr_temp = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ];
 
 document.addEventListener('DOMContentLoaded', function() {
   let calendar = document.querySelector('#calendar');
@@ -37,24 +38,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function onClickDays(){
 
-  let reservation = document.querySelector('#reservation');
   let hours = document.querySelector('#hours');
  
   for(let elem of document.querySelectorAll('.td_class')){
     elem.addEventListener('click', open_booking);
 
       function open_booking(){
-        add_day(hours, document.querySelectorAll('.td_class'), elem, reservation); this.removeEventListener('click', open_booking);
-        this.addEventListener('click', close_booking);
+        add_day(hours, document.querySelectorAll('.td_class'), elem); 
+        this.removeEventListener('click', open_booking);
         this.addEventListener('click', close_booking);
       }
 
       function close_booking(){
-        remove_day(hours, document.querySelectorAll('.td_class'), elem, reservation);
+        remove_day(hours, document.querySelectorAll('.td_class'), elem);
         this.removeEventListener('click', close_booking);
         this.addEventListener('click', open_booking);
       }
   }
+  console.log(time_object, 'timeobject')
 }
 
 function prev_func(){
@@ -128,34 +129,35 @@ function reservation_info(dayD){
 }
 
 
-function remove_day(hours, elems, current_elem, message_elem){
-  let arr = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
+function remove_day(hours, elems, current_elem){
   current_elem.classList.remove('green');
   hours.innerHTML = '';
-  let arr_collection = time_object[current_elem.dataset.book]
-  for(let elem of arr){
-    if(arr_collection.indexOf(elem) != -1){
-      let index = arr_collection.indexOf(elem);
-      arr_collection.splice(index, 1);
-    }
-    if(arr_collection.length == 0){
-      let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
-      time_object['dates_set'].splice(index, 1);
-    }
-  }
+  console.log(time_object[current_elem.dataset.book], 'time1')
 
-  if(arr_collection){
-    let li = document.getElementById(current_elem.dataset.book)
-    if(li) message_elem.removeChild(li);
+  let changed_day = time_object[current_elem.dataset.book].filter(n => !arr_temp.includes(n))
+
+  if(time_object[current_elem.dataset.book].length == 0){
+    let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
+    time_object['dates_set'].splice(index, 1);
   }
-  console.log(time_object, '2')
+  reservation_info(current_elem.dataset.book);
 }
 
-function add_day(hours, elems, current_elem, message_elem){
+function add_day(hours, elems, current_elem){
   hours.innerHTML = '';
   if(current_mode == 'booking'){
     current_elem.classList.add('green');
-    time_object[current_elem.dataset.book] = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17'] ;
+
+    let users_hours = booking_info.find(n => n.day_name == current_elem.dataset.book);
+    let new_arr = users_hours ? users_hours.hours.reduce((arr, item) => { 
+      arr.push(item.hour)
+      return arr;
+    }, [])
+    : []
+
+    let new_arr_for_adding = arr_temp.filter(n => !new_arr.includes(n));
+
+    time_object[current_elem.dataset.book] = new_arr_for_adding; 
     let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
     if(index == -1) time_object['dates_set'].push(current_elem.dataset.book);
     reservation_info(current_elem.dataset.book);
@@ -168,8 +170,10 @@ function add_day(hours, elems, current_elem, message_elem){
 }
 
 
+
 function add_hour(hour_elem, date, message_elem){
   hour_elem.classList.add('hours_green');
+  console.log(hour_elem.id, 'add elem id')
   time_object[date] ?  time_object[date].push(hour_elem.id) : time_object[date] = [hour_elem.id] ;
   reservation_info(date);
   console.log(time_object, '3')
@@ -177,12 +181,12 @@ function add_hour(hour_elem, date, message_elem){
 
 function remove_hour(hour_elem, date, parent_day, message_elem){
   hour_elem.classList.remove('hours_green');
+  console.log(hour_elem.id, 'remov elem id')
 
   let index = time_object[date].indexOf(hour_elem.id);
   time_object[date].splice(index, 1);
   
-  let arr = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
-  if(( hour_elem.id ) >= 8 && hour_elem.id <= 17){
+  if(hour_elem.id >= 8 && hour_elem.id <= 17){
     parent_day.classList.remove('green');
     parent_day.classList.add('blue_day');
   }
@@ -193,7 +197,6 @@ function remove_hour(hour_elem, date, parent_day, message_elem){
     let index = time_object['dates_set'].indexOf(date);
     time_object['dates_set'].splice(index, 1);
   }
-
   reservation_info(date);
 }
 
@@ -202,7 +205,7 @@ function create_hours_tbl(par, date, parent_day){
   let hours_tbl = title  + '<table id="hours_t"><tr>';
   for(let i = 0; i < 24; i++){
     let hour_i = i < 10 ? '0'+i : i;
-    let busyClass = classTdHour(parent_day.dataset.book, hour_i) 
+    let busyClass = classTdHour(parent_day.dataset.book, hour_i);
     let classN = i >= 8 && i <= 17 && current_mode == 'booking' ? 'hours_class hours_green' : 'hours_class';
     let show_busy = busyClass ?  busyClass : classN;
     console.log(show_busy, 'showBusy')
@@ -211,7 +214,6 @@ function create_hours_tbl(par, date, parent_day){
   hours_tbl += '</tr></table>';
   par.insertAdjacentHTML('afterbegin', hours_tbl)
 
-  let reservation = document.querySelector('#reservation');
   if(current_mode == 'booking'){
     for(let elem of document.querySelectorAll('.hours_class')){
 
@@ -238,16 +240,10 @@ function create_hours_tbl(par, date, parent_day){
 }
 
 function classTdHour(parent_day, number_h){
-  console.log(number_h, 'number_h')
   let arr1 = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
-
   let users_hours = booking_info.find(n => n.day_name == parent_day);
-  
   let newClass = users_hours && users_hours.hours.find(n => n.hour == number_h) ? 'busy_hour' : '';
   return newClass
-  
-  console.log(users_hours, 'usHours')
-  console.log(newClass, 'newClass')
 }
 
 

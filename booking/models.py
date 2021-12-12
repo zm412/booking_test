@@ -43,6 +43,10 @@ class Reservation_day(models.Model):
         date_result = datetime.date(int(d[2]), int(d[1]), int(d[0]))
         return date_result > datetime.date.today()
 
+    def filter_by_user(self, user):
+        return self.day_connection.filter(session__user = user)
+
+
 
 
 class Booking_session(models.Model):
@@ -53,6 +57,15 @@ class Booking_session(models.Model):
     deleted_by = models.ForeignKey(User, on_delete = models.DO_NOTHING, blank=True, null=True, related_name="user_del")
     updated_at = models.DateTimeField(blank=True, null=True,)
     updated_by = models.ForeignKey(User, on_delete = models.DO_NOTHING, blank=True, null=True,related_name="user_upd")
+
+    def serialize(self):
+        return {
+            'session_id': self.id,
+            'user_name': self.user.username,
+            'days': [{ 'day': d.day_name, 'hours': [ p.serialize() for p in  d.filter_by_user(self.user)] } for d in self.days_list.all()],
+            'created_at': self.created_at,
+        }
+
 
 
 class List_periods(models.Model):

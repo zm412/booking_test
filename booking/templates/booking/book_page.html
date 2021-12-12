@@ -20,13 +20,16 @@
       <div id="my_booking">
         <h3>Your reservations</h3>
           {% for c in  my_bookings %} 
-          <span>{{c.day_name}} : </span>
-            {% for q in  c.hours %} 
-            <span>{{ q.hour_name }}({{ q.parking_lot.parking_name }}),</span>
+            {% for t in  c.days %} 
+            
+          <span>{{t.day}} : </span>
+            {% for q in  t.hours %} 
+            <span>{{ q.hour }}({{ c.user_name }}),</span>
           {% endfor %} 
           <input type="submit" value='Change'>
+          <a href="{% url 'delete_reservation' session_id=c.session_id lot_id=parking_lot %}">Delete</a>
+            {% endfor %} 
 
-          <a href="{% url 'delete_day_reservation' c.day_name  %}">Delete</a>
           <br>
           {% endfor %} 
       </div>
