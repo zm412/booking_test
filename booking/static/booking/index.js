@@ -21,14 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
   let inp = document.querySelector('#mode');
 
   let upd_sess = document.querySelectorAll('.upd_sess');
-  console.log(upd_sess, 'sess')
   if(upd_sess) upd_sess.forEach(n => n.onclick= (e)=> upd_sess_func(booking_info,
                                                                     my_bookings,
                                                                     e.target.nextElementSibling, 
                                                                     e.target.dataset.day, 
                                                                     e.target.dataset.lot ))
   let manager_action = document.querySelectorAll('.manager_action');
-  console.log(upd_sess, 'sess')
   if(manager_action) manager_action.forEach(n => n.onclick= (e)=> upd_sess_func(
                                                                     booking_info,
                                                                     booking_info,
@@ -119,10 +117,9 @@ function onClickDays(){
         this.addEventListener('click', open_booking);
       }
   }
-  console.log(time_object, 'timeobject')
 }
 
-//change month on calendar by button click
+//Changing the month in the calendar by pressing the button
 function prev_func(){
   if(cur_month > 0 ){
     cur_month--;
@@ -133,7 +130,7 @@ function prev_func(){
   createCalendar(document.querySelector('#calendar'), cur_year, cur_month);
 };
 
-//change month on calendar button click
+//Changing the month in the calendar by pressing the button
 function next_func(){
   if(cur_month < 11){
     cur_month++;
@@ -157,7 +154,6 @@ async function fetchDataGet() {
       const json = await response.json();
       booking_info = json.bookings;
       my_bookings = json.filtered;
-      console.log(json)
     } catch (e) {
         console.error(e);
     }
@@ -278,7 +274,6 @@ function create_hours_tbl(par, date, parent_day, parking_lot){
   }
   hours_tbl += '</tr></table>';
   par.insertAdjacentHTML('afterbegin', hours_tbl)
-  console.log('ljljljlk')
 
   if(current_mode == 'booking'){
     for(let elem of document.querySelectorAll('.hours_class')){
