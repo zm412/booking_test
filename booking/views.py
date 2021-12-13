@@ -23,6 +23,7 @@ def get_all_hours(request):
     all_hours1 = [b.serialize() for b  in List_periods.objects.all() if b.clean_date()==True]
     filtered = [{ 'day': d.day_name,
                  'parking_lot_id': d.parking_lot.id,
+                 'session_id': [ s.serialize() for s in d.book_days.all() ],
                 'parking_lot_name': d.parking_lot.parking_name,
                 'hours': [ p.serialize() for p in  d.filter_by_user(request.user)]
                 } for d in Reservation_day.objects.all()]
@@ -41,9 +42,26 @@ def delete_reservation(request, session_id, lot_id):
     session.delete()
     return HttpResponseRedirect(reverse("open_parking_lot", args=[ lot_id ]))
 
-def update_reservation(request, session_id, lot_id):
-    pass
-    """
+def update_reservation(request):
+    print(request.body, 'POSTLKJLJ')
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+"""
+        parking_lot = Parking.objects.get(id=data['parking_lot'])
+        booking = Booking_session.objects.create(user=request.user)
+
+        for c in data['dates_set']:
+            day_x = Reservation_day.objects.get_or_create(day_name=c, parking_lot=parking_lot)
+            request.user.users_days.add(day_x[0])
+            day_x[0].book_days.add(booking)
+            for t in data[c]:
+                period = List_periods.objects.create(hour_name=t,
+                                                     day=day_x[0],
+                                                     session=booking
+                                                     )
+    return HttpResponseRedirect(reverse("open_parking_lot", args=[data['parking_lot']]))
+
     session = Booking_session.objects.get(id=session_id)
     session.update()
     return HttpResponseRedirect(reverse("open_parking_lot", args=[ lot_id ]))

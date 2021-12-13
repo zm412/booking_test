@@ -14,7 +14,7 @@ urlpatterns = [
     path("open_parking_lot/book_parking", views.book_parking, name="book_parking"),
     path("book_parking/", views.book_parking, name="book_parking"),
     path('delete_reservation/<int:session_id>/<int:lot_id>', views.delete_reservation, name="delete_reservation"),
-    path('update_reservation/<int:session_id>/<int:lot_id>', views.update_reservation, name="update_reservation"),
+    path('update_reservation/', views.update_reservation, name="update_reservation"),
     path("get_all_hours/", views.get_all_hours, name="get_all_hours"),
 
 ]

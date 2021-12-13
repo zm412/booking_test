@@ -5,7 +5,8 @@ let time_object = {
   dates_set:[]
 };
 
-let booking_info, my_bookings;
+let booking_info, my_bookings; 
+let update_collection = {'lot':null, 'day': null, 'hours': [], 'original': []};
 let data = new Date();
 let cur_year = data.getFullYear();
 let cur_month = data.getMonth();
@@ -47,22 +48,45 @@ function upd_sess_func(obj_common, obj_particular, elem, day, lot){
   console.log(obj_particular, 'part')
   cleaned_common_obj = obj_common.filter(n => n.day == day && n.parking_lot_id == lot)
   cleaned_partic_obj = obj_particular.filter(n => n.day == day && n.parking_lot_id == lot)
-  console.log(cleaned_common_obj, 'commontClean')
-  console.log(cleaned_partic_obj, 'partClean')
+    let arr = cleaned_partic_obj[0].hours.reduce((arr, n) => {
+    arr.push(n.hour);
+    return arr;
+  }, []);
+
+  update_collection.lot = lot;
+  update_collection.original = [...arr];
+  update_collection.day = day;
+  update_collection.hours = arr;
   let str = '';
+
   for(let i=0; i<24; i++){
     let d = i < 10 ? '0'+i : i;
-  console.log(cleaned_partic_obj[0].hours.find(n => n.hour == d), 'kjlj')
     let isDisabled = cleaned_common_obj[0].hours.find(n => n.hour == d && !cleaned_partic_obj[0].hours.find(k=> k.hour == d)) ? 'disabled' : false;
     let isChangable = cleaned_partic_obj[0].hours.find(n => n.hour == d) ? 'checked' : false;
-    console.log(isChangable, i, 'oiiiii')
     str += `
-      <label class=${isDisabled ? "off_checkbox": ''}>${d}</label>
-      <input type='checkbox' ${isDisabled} ${isChangable}> 
+      <label class=${isDisabled ? "off_checkbox": ''}>${d}   </label>
+      <input type='checkbox' class='update_inp' ${isDisabled} ${isChangable} value=${d}> 
       `
   }
+  str += `<input type='submit' id='send_upd'>` 
   elem.innerHTML = str;
+  document.querySelectorAll('.update_inp').forEach(n => n.onchange = (e)=> upd_collection_func(e))
+  document.querySelector('#send_upd').onclick = send_upd;
+}
 
+function send_upd(){
+  fetchDataPost(`/update_reservation/`, update_collection);
+}
+
+function upd_collection_func(event){
+  console.log( event.target.value, 'value' )
+  let index = update_collection.hours.indexOf(event.target.value);
+  if(event.target.checked){
+    if(index = -1) update_collection.hours.push(event.target.value)
+  }else{
+    update_collection.hours.splice(index, 1)
+  }
+  console.log(update_collection,'collection')
 }
 
 
