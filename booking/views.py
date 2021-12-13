@@ -10,6 +10,13 @@ from django.http import JsonResponse
 from .models import User, Parking, List_periods, Reservation_day
 from django import forms
 
+
+
+class Add_parking(forms.ModelForm):
+    class Meta:
+        model = Parking
+        fields = ['parking_name']
+
 def index(request):
     if request.user.is_authenticated:
         return render(request, "booking/index.html", {
@@ -25,9 +32,40 @@ def get_all_hours(request):
         'filtered': get_days_filtered_by_user(request.user)
         })
 
+
+def add_parking_lot(request):
+    form = Add_parking()
+    if request.method == "POST":
+        add_form = Add_parking(request.POST)
+        if add_form.is_valid():
+            parking = add_form.save()
+            parking.save()
+
+    return HttpResponseRedirect(reverse("manage_items"))
+
+
+def delete_parking(request, id_lot):
+    try:
+        parking = Parking.objects.get(id=id_lot)
+        parking.delete()
+        return HttpResponseRedirect(reverse("manage_items"))
+    except Parking.DoesNotExist:
+        return HttpResponseNotFound()
+
+
+def change_parking_name(request, id_lot):
+    parking = Parking.objects.get(id=id_lot)
+    if request.method == "POST":
+        parking.parking_name = request.POST['nw_name']
+        parking.save()
+
+    return HttpResponseRedirect(reverse("manage_items"))
+
 def manage_items(request):
+    form = Add_parking()
     all_hours = [b.serialize() for b  in Reservation_day.objects.all() if b.turn_to_date()==True]
     return render(request, "booking/add_parking.html", {
+            'form': form,
             'parking': Parking.objects.all(),
             'all_bookings': all_hours,
         })
@@ -62,37 +100,10 @@ def update_reservation(request):
                 period.delete()
     return HttpResponseRedirect(reverse("open_parking_lot", args=[data['lot']]))
 
-
-
 def save_hour(day_id, hour_name, user_for_book):
     day = Reservation_day.objects.get(id=day_id)
     period = List_periods.objects.create(user=user_for_book, hour_name=hour_name, day=day)
     day_x = Reservation_day.objects.get_or_create(day_name=c, parking_lot=parking_lot)
-
-
-def add_parking_lot(request):
-    if request.method == "POST":
-        parking = Parking(parking_name=request.POST['name'])
-        parking.save()
-    return render(request, "booking/add_parking.html", {
-            'parking': Parking.objects.all(),
-        })
-
-
-def delete_parking(request, id_lot):
-    parking = Parking.objects.get(id=id_lot)
-    parking.delete()
-    return render(request, "booking/add_parking.html", {
-            'parking': Parking.objects.all(),
-        })
-
-def change_parking_name(request, id_lot):
-    parking = Parking.objects.get(id=id_lot)
-    if request.method == "POST":
-        parking.parking_name = request.POST['nw_name']
-        parking.save()
-
-    return HttpResponseRedirect(reverse("index"))
 
 def open_parking_lot(request, id_lot):
     try:
@@ -112,8 +123,11 @@ def book_parking(request):
         parking_lot = Parking.objects.get(id=data['parking_lot'])
         for c in data['dates_set']:
             day_x = Reservation_day.objects.get_or_create(day_name=c, parking_lot=parking_lot)
-            for t in data[c]:
-                period = List_periods.objects.create(user=request.user, hour_name=t, day=day_x[0])
+            if day_x.turn_to_date():
+                for t in data[c]:
+                    period = List_periods.objects.create(user=request.user, hour_name=t, day=day_x[0])
+            else:
+                continue
     return HttpResponseRedirect(reverse("open_parking_lot", args=[data['parking_lot']]))
 
 def login_view(request):

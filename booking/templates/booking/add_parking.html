@@ -6,11 +6,8 @@
 
             <form class="row " action="{% url 'add_parking_lot' %} " method='POST'>
               {% csrf_token %}
-              <div class="form-floating">
-                <div class="col-sm-2">
-                    <input  name='name' placeholder='Введите условное название нового парковочного места'>
-                </div>
-
+              {{ form.as_p }}
+              {{ form.parking_name.errors }}
                 <div class="col-auto">
                     <input type="submit" class="btn btn-secondary mb-3" value='Add parking lot'>
                 </div>
@@ -58,8 +55,5 @@
       
     {% endif %} 
 
-  {% block script %}
-      <script src="{% static 'booking/index.js' %}?{% now "U" %}"></script>
-  {% endblock %}
 {% endblock %}
 
