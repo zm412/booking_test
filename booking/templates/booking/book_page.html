@@ -5,6 +5,7 @@
 {% block body %}
     {% if user.is_authenticated %}
 
+    <div >Parking: {{ parking_lot_name }}</div>
     <div id="calendar"  data-lot={{parking_lot}} data-user={{user.id}}></div>
       <button id='prev'>Back</button>
       <button id='next'>Next</button>
@@ -21,15 +22,20 @@
         <h3>Your reservations</h3>
           {% for c in  my_bookings %} 
             {% for t in  c.days %} 
-            
-          <span>{{t.day}} : </span>
-            {% for q in  t.hours %} 
-            <span>{{ q.hour }}({{ c.user_name }}),</span>
-          {% endfor %} 
-          <input type="submit" value='Change'>
-          <a href="{% url 'delete_reservation' session_id=c.session_id lot_id=parking_lot %}">Delete</a>
-            {% endfor %} 
+            <div>
 
+              <span>{{t.day}} ({{ t.parking_lot_name }}): </span>
+                {% for q in  t.hours %} 
+                <span>{{ q.hour }},</span>
+                {% endfor %} 
+            </div>
+
+            <div>
+          <a href="{% url 'delete_reservation' session_id=c.session_id lot_id=parking_lot %}">Delete</a>
+          <a href='#' class='upd_sess' data-lot={{t.parking_lot_id}}  data-day={{t.day}} >Update</a>
+          <div></div>
+          </div>
+            {% endfor %} 
           <br>
           {% endfor %} 
       </div>

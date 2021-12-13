@@ -16,6 +16,10 @@ table {
   background: grey;
 }
 
+.off_checkbox{
+  color: grey;
+}
+
 .green {
   background: green;
 }

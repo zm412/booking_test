@@ -5,7 +5,7 @@ let time_object = {
   dates_set:[]
 };
 
-let booking_info;
+let booking_info, my_bookings;
 let data = new Date();
 let cur_year = data.getFullYear();
 let cur_month = data.getMonth();
@@ -13,18 +13,24 @@ let arr_temp = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ];
 
 document.addEventListener('DOMContentLoaded', function() {
   let calendar = document.querySelector('#calendar');
-  let my_booking = document.querySelector('#my_booking');
+  let start_info = document.querySelector('#start_info');
   let form_r = document.querySelector('#form_r');
   let inp = document.querySelector('#mode');
+  let upd_sess = document.querySelectorAll('.upd_sess');
+  console.log(upd_sess, 'sess')
+  if(upd_sess) upd_sess.forEach(n => n.onclick= (e)=> upd_sess_func(booking_info,
+                                                                    my_bookings,
+                                                                    e.target.nextElementSibling, 
+                                                                    e.target.dataset.day, 
+                                                                    e.target.dataset.lot ))
 
-  time_object['parking_lot'] = calendar.dataset.lot;
-  time_object['user_id'] = calendar.dataset.user;
+  time_object['parking_lot'] = start_info.dataset.lot;
+  time_object['user_id'] = start_info.dataset.user;
   console.log(calendar, 'calendar')
-  document.getElementById('prev').onclick = prev_func;
-  document.getElementById('next').onclick = next_func;
 
   if(form_r) form_r.addEventListener('submit', send_info);
-  fetchDataGet(calendar);
+  if(calendar) fetchDataGet(calendar);
+
 
   if(inp){
     inp.onchange = (e) => {
@@ -36,10 +42,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
 })
 
+function upd_sess_func(obj_common, obj_particular, elem, day, lot){
+  console.log(obj_common, 'commont')
+  console.log(obj_particular, 'part')
+  cleaned_common_obj = obj_common.filter(n => n.day == day && n.parking_lot_id == lot)
+  cleaned_partic_obj = obj_particular.filter(n => n.day == day && n.parking_lot_id == lot)
+  console.log(cleaned_common_obj, 'commontClean')
+  console.log(cleaned_partic_obj, 'partClean')
+  let str = '';
+  for(let i=0; i<24; i++){
+    let d = i < 10 ? '0'+i : i;
+  console.log(cleaned_partic_obj[0].hours.find(n => n.hour == d), 'kjlj')
+    let isDisabled = cleaned_common_obj[0].hours.find(n => n.hour == d && !cleaned_partic_obj[0].hours.find(k=> k.hour == d)) ? 'disabled' : false;
+    let isChangable = cleaned_partic_obj[0].hours.find(n => n.hour == d) ? 'checked' : false;
+    console.log(isChangable, i, 'oiiiii')
+    str += `
+      <label class=${isDisabled ? "off_checkbox": ''}>${d}</label>
+      <input type='checkbox' ${isDisabled} ${isChangable}> 
+      `
+  }
+  elem.innerHTML = str;
+
+}
+
+
 function onClickDays(){
 
-  let hours = document.querySelector('#hours');
- 
+  let hours = document.querySelector('#hours'); 
   for(let elem of document.querySelectorAll('.td_class')){
     elem.addEventListener('click', open_booking);
 
@@ -80,11 +109,7 @@ function next_func(){
 
 
 function send_info(e){
-  e.preventDefault();
   fetchDataPost('/book_parking/', time_object)
-    .then(result => { 
-    })
- 
 }
 
 async function fetchDataGet(calendar) {
@@ -92,6 +117,8 @@ async function fetchDataGet(calendar) {
       const response = await fetch('/get_all_hours/');
       const json = await response.json();
       booking_info = json.bookings;
+      my_bookings = json.filtered;
+      console.log(json)
       createCalendar(calendar, cur_year, cur_month);
 
     } catch (e) {
@@ -132,7 +159,6 @@ function reservation_info(dayD){
 function remove_day(hours, elems, current_elem){
   current_elem.classList.remove('green');
   hours.innerHTML = '';
-  console.log(time_object[current_elem.dataset.book], 'time1')
 
   let changed_day = time_object[current_elem.dataset.book].filter(n => !arr_temp.includes(n))
 
@@ -148,7 +174,7 @@ function add_day(hours, elems, current_elem){
   if(current_mode == 'booking'){
     current_elem.classList.add('green');
 
-    let users_hours = booking_info.find(n => n.day_name == current_elem.dataset.book);
+    let users_hours = booking_info.find(n => n.day == current_elem.dataset.book);
     let new_arr = users_hours ? users_hours.hours.reduce((arr, item) => { 
       arr.push(item.hour)
       return arr;
@@ -166,27 +192,24 @@ function add_day(hours, elems, current_elem){
   for(let el of elems){
     current_elem == el ?  el.classList.add('active_day') :  el.classList.remove('active_day')
   }
-  create_hours_tbl(hours, current_elem.dataset.book, current_elem);
+  create_hours_tbl(hours, current_elem.dataset.book, current_elem, time_object['parking_lot']);
 }
 
 
 
-function add_hour(hour_elem, date, message_elem){
+function add_hour(hour_elem, date){
   hour_elem.classList.add('hours_green');
-  console.log(hour_elem.id, 'add elem id')
   time_object[date] ?  time_object[date].push(hour_elem.id) : time_object[date] = [hour_elem.id] ;
   reservation_info(date);
-  console.log(time_object, '3')
 }
 
-function remove_hour(hour_elem, date, parent_day, message_elem){
+function remove_hour(hour_elem, date, parent_day){
   hour_elem.classList.remove('hours_green');
-  console.log(hour_elem.id, 'remov elem id')
 
   let index = time_object[date].indexOf(hour_elem.id);
   time_object[date].splice(index, 1);
   
-  if(hour_elem.id >= 8 && hour_elem.id <= 17){
+  if(hour_elem.id >= 8 && hour_elem.id <= 17 && parent_day){
     parent_day.classList.remove('green');
     parent_day.classList.add('blue_day');
   }
@@ -200,19 +223,19 @@ function remove_hour(hour_elem, date, parent_day, message_elem){
   reservation_info(date);
 }
 
-function create_hours_tbl(par, date, parent_day){
+function create_hours_tbl(par, date, parent_day, parking_lot){
   let title = `<h1>${date}</h1>`;
   let hours_tbl = title  + '<table id="hours_t"><tr>';
   for(let i = 0; i < 24; i++){
     let hour_i = i < 10 ? '0'+i : i;
-    let busyClass = classTdHour(parent_day.dataset.book, hour_i);
+    let busyClass = classTdHour(date, hour_i, parking_lot);
     let classN = i >= 8 && i <= 17 && current_mode == 'booking' ? 'hours_class hours_green' : 'hours_class';
     let show_busy = busyClass ?  busyClass : classN;
-    console.log(show_busy, 'showBusy')
       hours_tbl +=`<td id='${hour_i}' class="${show_busy}">${hour_i}:00</td>`
   }
   hours_tbl += '</tr></table>';
   par.insertAdjacentHTML('afterbegin', hours_tbl)
+  console.log('ljljljlk')
 
   if(current_mode == 'booking'){
     for(let elem of document.querySelectorAll('.hours_class')){
@@ -239,10 +262,10 @@ function create_hours_tbl(par, date, parent_day){
 
 }
 
-function classTdHour(parent_day, number_h){
+function classTdHour(parent_day, number_h, parking_lot){
   let arr1 = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
-  let users_hours = booking_info.find(n => n.day_name == parent_day);
-  let newClass = users_hours && users_hours.hours.find(n => n.hour == number_h) ? 'busy_hour' : '';
+  let users_hours = booking_info.find(n => n.day == parent_day);
+  let newClass = users_hours && users_hours.hours.find(n => n.hour == number_h && users_hours.parking_lot_id == parking_lot) ? 'busy_hour' : '';
   return newClass
 }
 
@@ -280,8 +303,10 @@ function createCalendar(elem, year, month){
 
   table += '</tr></table>';
   elem.innerHTML = table;
+
+  document.getElementById('prev').onclick = prev_func;
+  document.getElementById('next').onclick = next_func;
   onClickDays()
-  console.log(booking_info, 'info')
 }
 
 

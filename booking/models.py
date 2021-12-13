@@ -30,12 +30,14 @@ class Parking(models.Model):
 class Reservation_day(models.Model):
     day_name = models.CharField(max_length=10)
     users_list = models.ManyToManyField(User, blank=True, related_name="users_days")
-    is_active = models.BooleanField(default=True)
+    parking_lot = models.ForeignKey(Parking, on_delete= models.CASCADE,related_name='session_parking' )
 
     def serialize(self):
         return {
-            'day_name': self.day_name,
-            'hours': [d.serialize() for d in self.day_connection.all()]
+            'day': self.day_name,
+            'hours': [d.serialize() for d in self.day_connection.all()],
+            'parking_lot_id': self.parking_lot.id,
+            'parking_lot_name': self.parking_lot.parking_name,
         }
 
     def turn_to_date(self):
@@ -62,7 +64,10 @@ class Booking_session(models.Model):
         return {
             'session_id': self.id,
             'user_name': self.user.username,
-            'days': [{ 'day': d.day_name, 'hours': [ p.serialize() for p in  d.filter_by_user(self.user)] } for d in self.days_list.all()],
+            'days': [{ 'day': d.day_name, 'parking_lot_id': d.parking_lot.id,
+                      'parking_lot_name': d.parking_lot.parking_name,
+                      'hours': [ p.serialize() for p in  d.filter_by_user(self.user)]
+                      } for d in self.days_list.all()],
             'created_at': self.created_at,
         }
 
@@ -72,7 +77,6 @@ class List_periods(models.Model):
     hour_name = models.CharField(max_length=2)
     day = models.ForeignKey(Reservation_day, on_delete= models.CASCADE,blank=True, related_name="day_connection")
     session = models.ForeignKey(Booking_session, on_delete= models.CASCADE,blank=True, related_name="booking_connection")
-    parking_lot = models.ForeignKey(Parking, on_delete= models.CASCADE)
 
     def clean_date(self):
         return self.day.turn_to_date()
@@ -84,8 +88,6 @@ class List_periods(models.Model):
         return {
             'hour': self.hour_name,
             'day': self.day.day_name,
-            'parking_lot': self.parking_lot.id,
-            'parking_lot_name': self.parking_lot.parking_name,
             'user_name': self.session.user.username,
             'user_id': self.session.user.id
         }

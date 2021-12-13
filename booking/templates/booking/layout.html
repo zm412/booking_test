@@ -16,7 +16,7 @@
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                      <a class="nav-link" data-quantity='{{ quantity }}' data-openp="{{ open_p }}" data-userid="{{ user.id }}" id='user_info' href="#"><strong id='name_user'>{{ user.username }}</strong></a>
+                      <a class="nav-link"   data-lot={{parking_lot}} data-user="{{ user.id }}" id='start_info' href="#"><strong id='name_user'>{{ user.username }}</strong></a>
                     </li>
                 {% endif %}
                 {% if user.is_authenticated %}
