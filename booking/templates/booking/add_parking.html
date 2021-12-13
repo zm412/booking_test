@@ -38,6 +38,23 @@
         </p>
         <hr>
           {% endfor %} 
+
+        <h3>All reservations</h3>
+          {% for c in  all_bookings %} 
+            <div>
+              <span>{{c.day}} ({{ c.parking_lot_name }}): </span>
+                {% for q in  c.hours %} 
+                <span>{{ q.hour }} ({{ q.user_name }}), </span>
+                {% endfor %} 
+            </div>
+
+            <div>
+          <a href="{% url 'delete_reservation' day_id=c.day_id lot_id=c.parking_lot_id  %}">Delete</a>
+          <a href='#' class='manager_action' data-lot={{c.parking_lot_id}}  data-day={{c.day}} >Update</a>
+            <div></div>
+          </div>
+          <br>
+          {% endfor %}
       
     {% endif %} 
 

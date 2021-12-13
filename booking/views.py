@@ -2,7 +2,7 @@ import json
 from datetime import timedelta, datetime
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -25,6 +25,13 @@ def get_all_hours(request):
         'filtered': get_days_filtered_by_user(request.user)
         })
 
+def manage_items(request):
+    all_hours = [b.serialize() for b  in Reservation_day.objects.all() if b.turn_to_date()==True]
+    return render(request, "booking/add_parking.html", {
+            'parking': Parking.objects.all(),
+            'all_bookings': all_hours,
+        })
+
 def get_days_filtered_by_user(user):
     return [{
         'day_id': d.id,
@@ -34,11 +41,6 @@ def get_days_filtered_by_user(user):
         'hours': [ p.serialize() for p in  d.filter_by_user(user)]
         } for d in Reservation_day.objects.all() if len([p.serialize() for p in d.filter_by_user(user)]) > 0]
 
-
-def manage_items(request):
-    return render(request, "booking/add_parking.html", {
-            'parking': Parking.objects.all(),
-        })
 
 def delete_reservation(request, day_id, lot_id):
     session = Reservation_day.objects.get(id=day_id)
@@ -89,17 +91,19 @@ def change_parking_name(request, id_lot):
     if request.method == "POST":
         parking.parking_name = request.POST['nw_name']
         parking.save()
-    return render(request, "booking/add_parking.html", {
-            'parking': Parking.objects.all(),
-        })
+
+    return HttpResponseRedirect(reverse("index"))
 
 def open_parking_lot(request, id_lot):
-    parking = Parking.objects.get(id=id_lot)
-    return render(request, "booking/book_page.html", {
-        'parking_lot': id_lot,
-        'parking_lot_name': parking.parking_name,
-        'my_bookings': get_days_filtered_by_user(request.user)
-    })
+    try:
+        parking = Parking.objects.get(id=id_lot)
+        return render(request, "booking/book_page.html", {
+                'parking_lot': id_lot,
+                'parking_lot_name': parking.parking_name,
+                'my_bookings': get_days_filtered_by_user(request.user)
+            })
+    except Parking.DoesNotExist:
+        return HttpResponseNotFound()
 
 
 def book_parking(request):

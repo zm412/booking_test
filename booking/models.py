@@ -33,6 +33,7 @@ class Reservation_day(models.Model):
 
     def serialize(self):
         return {
+            'day_id': self.id,
             'day': self.day_name,
             'hours': [d.serialize() for d in self.day_connection.all()],
             'parking_lot_id': self.parking_lot.id,
@@ -51,9 +52,6 @@ class Reservation_day(models.Model):
 
     def filter_by_user(self, user):
         return self.day_connection.filter(user = user)
-
-
-
 
 
 class List_periods(models.Model):

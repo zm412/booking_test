@@ -44,7 +44,12 @@
         
         <div class="body">
             {% block body %}
+
             {% endblock %}
+
+  {% block script %}
+      <script src="{% static 'booking/index.js' %}?{% now "U" %}"></script>
+  {% endblock %}
         </div>
     </body>
 </html>

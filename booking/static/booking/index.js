@@ -13,10 +13,13 @@ let cur_month = data.getMonth();
 let arr_temp = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ];
 
 document.addEventListener('DOMContentLoaded', function() {
+
+  fetchDataGet();
   let calendar = document.querySelector('#calendar');
   let start_info = document.querySelector('#start_info');
   let form_r = document.querySelector('#form_r');
   let inp = document.querySelector('#mode');
+
   let upd_sess = document.querySelectorAll('.upd_sess');
   console.log(upd_sess, 'sess')
   if(upd_sess) upd_sess.forEach(n => n.onclick= (e)=> upd_sess_func(booking_info,
@@ -24,36 +27,38 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                     e.target.nextElementSibling, 
                                                                     e.target.dataset.day, 
                                                                     e.target.dataset.lot ))
+  let manager_action = document.querySelectorAll('.manager_action');
+  console.log(upd_sess, 'sess')
+  if(manager_action) manager_action.forEach(n => n.onclick= (e)=> upd_sess_func(
+                                                                    booking_info,
+                                                                    booking_info,
+                                                                    e.target.nextElementSibling, 
+                                                                    e.target.dataset.day, 
+                                                                    e.target.dataset.lot ))
 
   time_object['parking_lot'] = start_info.dataset.lot;
   time_object['user_id'] = start_info.dataset.user;
-  console.log(calendar, 'calendar')
 
   if(form_r) form_r.addEventListener('submit', send_info);
-  if(calendar) fetchDataGet(calendar);
-
+  if(calendar) createCalendar(calendar, cur_year, cur_month); 
 
   if(inp){
     inp.onchange = (e) => {
       current_mode =  e.target.checked ? 'booking' : 'view';
-      console.log(current_mode, 'curMode')
       createCalendar(calendar, cur_year, cur_month);
     }
   }
 
 })
 
+// create update-form (checkboxes and labels) and collect info from it to update_collection ojbect
 function upd_sess_func(obj_common, obj_particular, elem, day, lot){
-  console.log(obj_common, 'commont')
-  console.log(obj_particular, 'part')
   cleaned_common_obj = obj_common.filter(n => n.day == day && n.parking_lot_id == lot)
   cleaned_partic_obj = obj_particular.filter(n => n.day == day && n.parking_lot_id == lot)
     let arr = cleaned_partic_obj[0].hours.reduce((arr, n) => {
     arr.push(n.hour);
     return arr;
   }, []);
-
-  console.log(cleaned_partic_obj.day_id, 'day')
 
   update_collection.lot = lot;
   update_collection.day_id = cleaned_partic_obj[0].day_id;
@@ -78,25 +83,26 @@ function upd_sess_func(obj_common, obj_particular, elem, day, lot){
   document.querySelector('#send_upd').onclick = send_upd;
 }
 
+// send updated info to server 
 function send_upd(){
   fetchDataPost(`/update_reservation/`, update_collection);
   window.location.reload(false);
 }
 
+
+//func for change object update_collection by click on checkbox
 function upd_collection_func(event){
-  console.log( event.target.value, 'value' )
   let index = update_collection.hours.indexOf(event.target.value);
   if(event.target.checked){
     if(index = -1) update_collection.hours.push(event.target.value)
   }else{
     update_collection.hours.splice(index, 1)
   }
-  console.log(update_collection,'collection')
 }
 
 
+//func for adding set of work-day-hours (those are specified in arr_temp array) by on click on calendar
 function onClickDays(){
-
   let hours = document.querySelector('#hours'); 
   for(let elem of document.querySelectorAll('.td_class')){
     elem.addEventListener('click', open_booking);
@@ -116,6 +122,7 @@ function onClickDays(){
   console.log(time_object, 'timeobject')
 }
 
+//change month on calendar by button click
 function prev_func(){
   if(cur_month > 0 ){
     cur_month--;
@@ -126,6 +133,7 @@ function prev_func(){
   createCalendar(document.querySelector('#calendar'), cur_year, cur_month);
 };
 
+//change month on calendar button click
 function next_func(){
   if(cur_month < 11){
     cur_month++;
@@ -137,24 +145,25 @@ function next_func(){
 };
 
 
+//send collected info about new reservation to server. Info collected on time_object object
 function send_info(e){
   fetchDataPost('/book_parking/', time_object)
 }
 
-async function fetchDataGet(calendar) {
+//func for geting information from server
+async function fetchDataGet() {
     try {
       const response = await fetch('/get_all_hours/');
       const json = await response.json();
       booking_info = json.bookings;
       my_bookings = json.filtered;
       console.log(json)
-      createCalendar(calendar, cur_year, cur_month);
-
     } catch (e) {
         console.error(e);
     }
 };
 
+//regular func for using on post-query
 async function fetchDataPost(url, obj){  
   const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
   try{
@@ -172,6 +181,7 @@ async function fetchDataPost(url, obj){
 }
 
 
+//shows information about existing bookings
 function reservation_info(dayD){
   let reservation = document.querySelector('#reservation');
   let arr = time_object[dayD];
@@ -184,7 +194,7 @@ function reservation_info(dayD){
   }
 }
 
-
+//func for change list of hours for reservation
 function remove_day(hours, elems, current_elem){
   current_elem.classList.remove('green');
   hours.innerHTML = '';
@@ -198,6 +208,7 @@ function remove_day(hours, elems, current_elem){
   reservation_info(current_elem.dataset.book);
 }
 
+//func for change list of hours for reservation
 function add_day(hours, elems, current_elem){
   hours.innerHTML = '';
   if(current_mode == 'booking'){
@@ -226,12 +237,14 @@ function add_day(hours, elems, current_elem){
 
 
 
+//func for change list of hours for reservation
 function add_hour(hour_elem, date){
   hour_elem.classList.add('hours_green');
   time_object[date] ?  time_object[date].push(hour_elem.id) : time_object[date] = [hour_elem.id] ;
   reservation_info(date);
 }
 
+//func for change list of hours for reservation
 function remove_hour(hour_elem, date, parent_day){
   hour_elem.classList.remove('hours_green');
 
@@ -252,6 +265,7 @@ function remove_hour(hour_elem, date, parent_day){
   reservation_info(date);
 }
 
+// create table of hours after click on day (td on calendar)
 function create_hours_tbl(par, date, parent_day, parking_lot){
   let title = `<h1>${date}</h1>`;
   let hours_tbl = title  + '<table id="hours_t"><tr>';
@@ -291,8 +305,8 @@ function create_hours_tbl(par, date, parent_day, parking_lot){
 
 }
 
+// func changes classes on hours table (shows busy days and avialable days) 
 function classTdHour(parent_day, number_h, parking_lot){
-  let arr1 = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17' ]
   let users_hours = booking_info.find(n => n.day == parent_day);
   let newClass = users_hours && users_hours.hours.find(n => n.hour == number_h && users_hours.parking_lot_id == parking_lot) ? 'busy_hour' : '';
   return newClass
@@ -309,6 +323,7 @@ function formatDate(date) {
   return dd + '.' + mm + '.' + yy;
 }
 
+//creates dinamic calendar on page
 function createCalendar(elem, year, month){
   elem.innerHTML = '';
   let show_month = month+1 < 10 ? '0'+( month+1 ) : month+1;
@@ -336,6 +351,7 @@ function createCalendar(elem, year, month){
   document.getElementById('prev').onclick = prev_func;
   document.getElementById('next').onclick = next_func;
   onClickDays()
+  
 }
 
 

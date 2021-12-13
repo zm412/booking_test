@@ -6,10 +6,12 @@
     {% if user.is_authenticated %}
 
     <div >Parking: {{ parking_lot_name }}</div>
-    <div id="calendar"  data-lot={{parking_lot}} data-user={{user.id}}></div>
+    <div id="calendar"  data-lot={{parking_lot}} data-user={{user.id}}></div> <br>
       <button id='prev'>Back</button>
-      <button id='next'>Next</button>
-      <label>Включить режим бронирования</label><input type='checkbox' id='mode' value='on'>
+      <button id='next'>Next</button><br><br>
+        <input type='checkbox' id='mode' value='on'>
+        <label for='mode'>Enable booking mode </label>
+      <hr>
     <div id="hours"></div>
     <ul id="reservation"></ul>
     <div id="form_reservation">
@@ -18,7 +20,9 @@
         {% csrf_token %}
         <input type="submit" value='Make a reservation'>
       </form>
+      <hr>
       <div id="my_booking">
+
         <h3>Your reservations</h3>
           {% for c in  my_bookings %} 
             <div>
@@ -40,8 +44,5 @@
     </div>
      
     {% endif %} 
-  {% block script %}
-      <script src="{% static 'booking/index.js' %}?{% now "U" %}"></script>
-  {% endblock %}
 {% endblock %}
 
