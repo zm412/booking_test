@@ -43,6 +43,7 @@ class Reservation_day(models.Model):
             'ubpdated_by': self.deleted_by,
         }
 
+
     def turn_to_date(self):
         d = str(self.day_name).split('.')
         date_result = datetime.date(int(d[2]), int(d[1]), int(d[0]))

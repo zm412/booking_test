@@ -20,32 +20,32 @@ def index(request):
 
 def get_all_hours(request):
     all_hours = [b.serialize() for b  in Reservation_day.objects.all() if b.turn_to_date()==True]
-    all_hours1 = [b.serialize() for b  in List_periods.objects.all() if b.clean_date()==True]
-    filtered = [{
+    return JsonResponse({
+        'bookings': all_hours,
+        'filtered': get_days_filtered_by_user(request.user)
+        })
+
+def get_days_filtered_by_user(user):
+    return [{
         'day_id': d.id,
         'day': d.day_name,
         'parking_lot_id': d.parking_lot.id,
         'parking_lot_name': d.parking_lot.parking_name,
-        'hours': [ p.serialize() for p in  d.filter_by_user(request.user)]
-    } for d in Reservation_day.objects.all() if len( [ p.serialize() for p in  d.filter_by_user(request.user)] ) > 0]
+        'hours': [ p.serialize() for p in  d.filter_by_user(user)]
+        } for d in Reservation_day.objects.all() if len([p.serialize() for p in d.filter_by_user(user)]) > 0]
 
-    return JsonResponse({
-        'bookings': all_hours,
-        'filtered': filtered
-        })
 
 def manage_items(request):
-    return render(request, "booking/add_parking.html")
+    return render(request, "booking/add_parking.html", {
+            'parking': Parking.objects.all(),
+        })
 
 def delete_reservation(request, day_id, lot_id):
     session = Reservation_day.objects.get(id=day_id)
     hours = session.day_connection.filter(user=request.user).delete()
-    print(session, 'SESSSION')
-    #session.delete()
     return HttpResponseRedirect(reverse("open_parking_lot", args=[ lot_id ]))
 
 def update_reservation(request):
-    print(request.body, 'POSTLKJLJ')
     if request.method == "POST":
         data = json.loads(request.body)
         day = Reservation_day.objects.get(id=data['day_id'])
@@ -54,12 +54,10 @@ def update_reservation(request):
                 continue
             else:
                 period = List_periods.objects.create(user=request.user, hour_name=d, day=day)
-                continue
         for p in data['original']:
             if p not in data['hours']:
                 period = day.day_connection.get(hour_name=p)
                 period.delete()
-
     return HttpResponseRedirect(reverse("open_parking_lot", args=[data['lot']]))
 
 
@@ -70,49 +68,38 @@ def save_hour(day_id, hour_name, user_for_book):
     day_x = Reservation_day.objects.get_or_create(day_name=c, parking_lot=parking_lot)
 
 
-
-
-"""
-        parking_lot = Parking.objects.get(id=data['parking_lot'])
-        booking = Booking_session.objects.create(user=request.user)
-
-        for c in data['dates_set']:
-            day_x = Reservation_day.objects.get_or_create(day_name=c, parking_lot=parking_lot)
-            request.user.users_days.add(day_x[0])
-            day_x[0].book_days.add(booking)
-            for t in data[c]:
-                period = List_periods.objects.create(hour_name=t,
-                                                     day=day_x[0],
-                                                     session=booking
-                                                     )
-    return HttpResponseRedirect(reverse("open_parking_lot", args=[data['parking_lot']]))
-
-    session = Booking_session.objects.get(id=session_id)
-    session.update()
-    return HttpResponseRedirect(reverse("open_parking_lot", args=[ lot_id ]))
-"""
-
 def add_parking_lot(request):
     if request.method == "POST":
         parking = Parking(parking_name=request.POST['name'])
         parking.save()
-    return HttpResponseRedirect(reverse("index"))
+    return render(request, "booking/add_parking.html", {
+            'parking': Parking.objects.all(),
+        })
+
+
+def delete_parking(request, id_lot):
+    parking = Parking.objects.get(id=id_lot)
+    parking.delete()
+    return render(request, "booking/add_parking.html", {
+            'parking': Parking.objects.all(),
+        })
+
+def change_parking_name(request, id_lot):
+    parking = Parking.objects.get(id=id_lot)
+    if request.method == "POST":
+        parking.parking_name = request.POST['nw_name']
+        parking.save()
+    return render(request, "booking/add_parking.html", {
+            'parking': Parking.objects.all(),
+        })
 
 def open_parking_lot(request, id_lot):
     parking = Parking.objects.get(id=id_lot)
-    my_booking = [{
-                'day_id': d.id,
-                'day': d.day_name,
-                 'parking_lot_id': d.parking_lot.id,
-                'parking_lot_name': d.parking_lot.parking_name,
-                'hours': [ p.serialize() for p in  d.filter_by_user(request.user)]
-    } for d in Reservation_day.objects.all() if len( [ p.serialize() for p in  d.filter_by_user(request.user)] ) > 0]
-
     return render(request, "booking/book_page.html", {
-            'parking_lot': id_lot,
-            'parking_lot_name': parking.parking_name,
-            'my_bookings': my_booking,
-                                                      })
+        'parking_lot': id_lot,
+        'parking_lot_name': parking.parking_name,
+        'my_bookings': get_days_filtered_by_user(request.user)
+    })
 
 
 def book_parking(request):

@@ -80,6 +80,7 @@ function upd_sess_func(obj_common, obj_particular, elem, day, lot){
 
 function send_upd(){
   fetchDataPost(`/update_reservation/`, update_collection);
+  window.location.reload(false);
 }
 
 function upd_collection_func(event){

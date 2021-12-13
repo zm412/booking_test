@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block body %}
-    {% if user.is_authenticated %}
+    {% if user.is_superuser %}
 
             <form class="row " action="{% url 'add_parking_lot' %} " method='POST'>
               {% csrf_token %}
@@ -16,8 +16,31 @@
                 </div>
               </div>
             </form>
+
+        <hr>
+            
+          {% for c in parking %} 
+          <p>
+          <a href="{% url 'open_parking_lot' c.id  %}">Parking {{ c.parking_name }}</a>
+            <form class="row " action="{% url 'change_parking_name' c.id %} " method='POST'>
+              {% csrf_token %}
+              <div class="form-floating">
+                <div class="col-sm-2">
+                    <input  name='nw_name' placeholder='Введите новое название парковочного места'>
+                </div>
+
+                <div class="col-auto">
+                    <input type="submit" class="btn btn-secondary mb-3" value='Change parking lot'>
+                </div>
+              </div>
+            </form>
+            <a href="{% url 'delete_parking' c.id %}">Delete</a>
+        </p>
+        <hr>
+          {% endfor %} 
       
     {% endif %} 
+
   {% block script %}
       <script src="{% static 'booking/index.js' %}?{% now "U" %}"></script>
   {% endblock %}
