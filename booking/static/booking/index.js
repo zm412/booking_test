@@ -6,7 +6,7 @@ let time_object = {
 };
 
 let booking_info, my_bookings; 
-let update_collection = {'lot':null, 'day': null, 'hours': [], 'original': []};
+let update_collection = {'day_id': null, 'lot':null, 'day': null, 'hours': [], 'original': []};
 let data = new Date();
 let cur_year = data.getFullYear();
 let cur_month = data.getMonth();
@@ -53,10 +53,14 @@ function upd_sess_func(obj_common, obj_particular, elem, day, lot){
     return arr;
   }, []);
 
+  console.log(cleaned_partic_obj.day_id, 'day')
+
   update_collection.lot = lot;
+  update_collection.day_id = cleaned_partic_obj[0].day_id;
   update_collection.original = [...arr];
   update_collection.day = day;
   update_collection.hours = arr;
+
   let str = '';
 
   for(let i=0; i<24; i++){
