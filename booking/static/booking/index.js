@@ -119,6 +119,59 @@ function onClickDays(){
   }
 }
 
+
+function remove_day(hours, elems, current_elem){
+  current_elem.classList.remove('green');
+  hours.innerHTML = '';
+  let arr_collection = time_object[current_elem.dataset.book]
+  for(let elem of arr_temp){
+    if(arr_collection.indexOf(elem) != -1){
+      let index = arr_collection.indexOf(elem);
+      arr_collection.splice(index, 1);
+    }
+  }
+
+  if(arr_collection.length == 0){
+    let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
+    time_object['dates_set'].splice(index, 1);
+    delete arr_collection;
+  }
+
+ console.log(time_object, '2')
+  reservation_info(current_elem.dataset.book);
+  console.log(time_object, 'time1')
+}
+
+//func for change list of hours for reservation
+function add_day(hours, elems, current_elem){
+  hours.innerHTML = '';
+  if(current_mode == 'booking'){
+    current_elem.classList.add('green');
+
+    let users_hours = booking_info.find(n => n.day == current_elem.dataset.book);
+    let new_arr = users_hours ? users_hours.hours.reduce((arr, item) => { 
+      arr.push(item.hour)
+      return arr;
+    }, [])
+    : []
+
+    let new_arr_for_adding = arr_temp.filter(n => !new_arr.includes(n));
+
+    time_object[current_elem.dataset.book] = new_arr_for_adding; 
+    let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
+    if(index == -1) time_object['dates_set'].push(current_elem.dataset.book);
+    reservation_info(current_elem.dataset.book);
+  console.log(time_object, 'time1')
+  } 
+
+  for(let el of elems){
+    current_elem == el ?  el.classList.add('active_day') :  el.classList.remove('active_day')
+  }
+  create_hours_tbl(hours, current_elem.dataset.book, current_elem, time_object['parking_lot']);
+}
+
+
+
 //Changing the month in the calendar by pressing the button
 function prev_func(){
   if(cur_month > 0 ){
@@ -189,49 +242,6 @@ function reservation_info(dayD){
     reservation.appendChild(li);
   }
 }
-
-//func for change list of hours for reservation
-function remove_day(hours, elems, current_elem){
-  current_elem.classList.remove('green');
-  hours.innerHTML = '';
-
-  let changed_day = time_object[current_elem.dataset.book].filter(n => !arr_temp.includes(n))
-
-  if(time_object[current_elem.dataset.book].length == 0){
-    let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
-    time_object['dates_set'].splice(index, 1);
-  }
-  reservation_info(current_elem.dataset.book);
-}
-
-//func for change list of hours for reservation
-function add_day(hours, elems, current_elem){
-  hours.innerHTML = '';
-  if(current_mode == 'booking'){
-    current_elem.classList.add('green');
-
-    let users_hours = booking_info.find(n => n.day == current_elem.dataset.book);
-    let new_arr = users_hours ? users_hours.hours.reduce((arr, item) => { 
-      arr.push(item.hour)
-      return arr;
-    }, [])
-    : []
-
-    let new_arr_for_adding = arr_temp.filter(n => !new_arr.includes(n));
-
-    time_object[current_elem.dataset.book] = new_arr_for_adding; 
-    let index = time_object['dates_set'].indexOf(current_elem.dataset.book);
-    if(index == -1) time_object['dates_set'].push(current_elem.dataset.book);
-    reservation_info(current_elem.dataset.book);
-  } 
-
-  for(let el of elems){
-    current_elem == el ?  el.classList.add('active_day') :  el.classList.remove('active_day')
-  }
-  create_hours_tbl(hours, current_elem.dataset.book, current_elem, time_object['parking_lot']);
-}
-
-
 
 //func for change list of hours for reservation
 function add_hour(hour_elem, date){
