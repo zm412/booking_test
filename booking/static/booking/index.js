@@ -137,9 +137,7 @@ function remove_day(hours, elems, current_elem){
     delete arr_collection;
   }
 
- console.log(time_object, '2')
   reservation_info(current_elem.dataset.book);
-  console.log(time_object, 'time1')
 }
 
 //func for change list of hours for reservation
@@ -227,6 +225,7 @@ async function fetchDataPost(url, obj){
   } catch(e){
     console.error(e);
   }
+  window.location.reload(false);
 }
 
 
