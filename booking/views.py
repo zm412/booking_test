@@ -123,11 +123,8 @@ def book_parking(request):
         parking_lot = Parking.objects.get(id=data['parking_lot'])
         for c in data['dates_set']:
             day_x = Reservation_day.objects.get_or_create(day_name=c, parking_lot=parking_lot)
-            if day_x.turn_to_date():
-                for t in data[c]:
-                    period = List_periods.objects.create(user=request.user, hour_name=t, day=day_x[0])
-            else:
-                continue
+            for t in data[c]:
+                period = List_periods.objects.create(user=request.user, hour_name=t, day=day_x[0])
     return HttpResponseRedirect(reverse("open_parking_lot", args=[data['parking_lot']]))
 
 def login_view(request):
