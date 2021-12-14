@@ -46,7 +46,7 @@
             </div>
 
             <div>
-          <a href="{% url 'delete_reservation' day_id=c.day_id lot_id=c.parking_lot_id  %}">Delete</a>
+          <a href="{% url 'delete_reservation' day_id=c.day_id lot_id=c.parking_lot_id role='manager' %}">Delete</a>
           <a href='#' class='manager_action' data-lot={{c.parking_lot_id}}  data-day={{c.day}} >Update</a>
             <div></div>
           </div>

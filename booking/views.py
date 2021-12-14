@@ -80,10 +80,24 @@ def get_days_filtered_by_user(user):
         } for d in Reservation_day.objects.all() if len([p.serialize() for p in d.filter_by_user(user)]) > 0]
 
 
-def delete_reservation(request, day_id, lot_id):
+def delete_reservation(request, day_id, lot_id, role):
     session = Reservation_day.objects.get(id=day_id)
     hours = session.day_connection.filter(user=request.user).delete()
-    return HttpResponseRedirect(reverse("open_parking_lot", args=[ lot_id ]))
+    if(session.day_connection.count() == 0):
+        session.delete()
+    mess = ''
+    if(role == 'employee'):
+        print('empl')
+        return HttpResponseRedirect(reverse("open_parking_lot", args=[ lot_id ]))
+    elif(role == 'manager'):
+        print('manag')
+        return HttpResponseRedirect(reverse("manage_items"))
+    else:
+        print('not')
+        return HttpResponseNotFound()
+
+
+
 
 def update_reservation(request):
     if request.method == "POST":
